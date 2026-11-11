@@ -12,6 +12,7 @@ openpyxl = "^3.1"
 requests = "^2.31"
 python-dotenv = "^1.0"
 cachetools = "^8.0.0"
+xlrd = "^2.0.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0"
