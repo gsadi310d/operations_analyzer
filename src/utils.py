@@ -11,6 +11,28 @@ from src.logg import setup_logger
 
 logger = setup_logger("utils", "logs/utils.log")
 
+_DATE_FORMATS = (
+    "%Y-%m-%d %H:%M:%S",
+    "%Y-%m-%d",
+    "%d.%m.%Y %H:%M:%S",
+    "%d.%m.%Y",
+)
+
+
+def parse_date_column(series: pd.Series) -> pd.Series:
+    """Парсит колонку дат, перебирая известные форматы."""
+    values = series.astype(str).str.strip()
+    parsed = pd.to_datetime(values, errors="coerce", format=_DATE_FORMATS[0])
+    remaining = parsed.isna()
+    for fmt in _DATE_FORMATS[1:]:
+        if not remaining.any():
+            break
+        parsed[remaining] = pd.to_datetime(
+            values[remaining], errors="coerce", format=fmt
+        )
+        remaining = parsed.isna()
+    return parsed
+
 
 def read_transactions_excel(file_path: str | Path) -> pd.DataFrame:
     """Читает Excel-файл с транзакциями и приводит колонки дат к datetime.
@@ -22,7 +44,7 @@ def read_transactions_excel(file_path: str | Path) -> pd.DataFrame:
     df = pd.read_excel(file_path)
     for col in ("Дата операции", "Дата платежа"):
         if col in df.columns:
-            df[col] = pd.to_datetime(df[col], errors="coerce", dayfirst=True)
+            df[col] = parse_date_column(df[col])
     logger.info("Загружено строк: %s", len(df))
     return df
 
@@ -37,7 +59,7 @@ def parse_date(date_str: str) -> datetime:
     """
     for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d", "%d.%m.%Y %H:%M:%S", "%d.%m.%Y"):
         try:
-            logger.info("Дата сформирована")
+            logger.info(f"Дата распознана: {date_str}")
             return datetime.strptime(str(date_str).strip(), fmt)
         except ValueError:
             continue

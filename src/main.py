@@ -5,7 +5,7 @@ from typing import Any, cast
 
 from src import reports, services, utils, views
 
-DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "operations.xls"
+DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "operations.xlsx"
 
 
 def read_date(prompt: str) -> str:
@@ -14,8 +14,16 @@ def read_date(prompt: str) -> str:
     valid = False
     while not valid:
         try:
-            value = str(utils.parse_date(input(prompt)))
-            raw = value.strip() if value is not None else ""
+            in_date = input(prompt)
+            if not in_date:
+                print("Ввели пустое значение, Пример: 2021-05-21")
+                continue
+            try:
+                value = str(utils.parse_date(in_date))
+                raw = value.strip() if value is not None else ""
+            except ValueError:
+                print("Некорректное значение, Пример: 2021-05-21")
+                continue
         except UnicodeDecodeError:
             print("Не распознал ввод — переключите раскладку на EN")
             continue
