@@ -1,0 +1,27 @@
+{
+  "currency_rates:EUR,USD": {
+    "timestamp": 1794385277.198707,
+    "data": [
+      {"currency": "USD", "rate": 82.55},
+      {"currency": "EUR", "rate": 92.4}
+    ]
+  },
+  "currency_rates:EUR,USD,CNY": {
+    "timestamp": 1794385277.198707,
+    "data": [
+      {"currency": "USD", "rate": 82.55},
+      {"currency": "EUR", "rate": 92.4},
+      {"currency": "CNY", "rate": 12.38}
+    ]
+  },
+  "stock_prices:AAPL,AMZN,GOOGL,MSFT,TSLA": {
+    "timestamp": 1794385277.198707,
+    "data": [
+      {"stock": "AAPL", "price": 348.51},
+      {"stock": "AMZN", "price": 250.71},
+      {"stock": "GOOGL", "price": 340.92},
+      {"stock": "MSFT", "price": 533.16},
+      {"stock": "TSLA", "price": 379.78}
+    ]
+  }
+}
