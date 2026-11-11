@@ -5,15 +5,8 @@ from datetime import datetime
 import pytest
 
 import src.views as views
-from src.views import (
-    events_page,
-    get_currency_rates,
-    get_period_range,
-    get_stock_prices,
-    load_user_settings,
-    main_page,
-)
-
+from src.views import (events_page, get_currency_rates, get_period_range,
+                       get_stock_prices, load_user_settings, main_page)
 
 # ---------- Вспомогательные моки ----------
 

@@ -3,20 +3,23 @@
 import json
 import os
 from datetime import datetime, timedelta
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, cast
 
 import requests
-
-try:
-    from dotenv import load_dotenv
-except ImportError:  # pragma: no cover - dotenv не обязателен для запуска
-    def load_dotenv() -> None:
-        """Заглушка: без пакета python-dotenv переменные читаются из окружения."""
-load_dotenv()
-
 from src.cache import file_cache_get, file_cache_save
 from src.logg import setup_logger
-from src.utils import filter_transactions_from_month_start, get_greeting, parse_date
+from src.utils import (filter_transactions_from_month_start, get_greeting,
+                       parse_date)
+
+"""Заглушка: без пакета python-dotenv переменные читаются из окружения."""
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover
+    load_dotenv = None  # type: ignore[assignment]
+
+if load_dotenv is not None:
+    load_dotenv()
+load_dotenv()
 
 logger = setup_logger("views", "logs/views.log")
 
@@ -31,17 +34,17 @@ DEFAULT_SETTINGS = {
 }
 
 
-def load_user_settings(path: str = "user_settings.json") -> dict:
+def load_user_settings(path: str = "user_settings.json") -> dict[str, Any]:
     """Читает пользовательские настройки; при ошибке — настройки по умолчанию."""
     try:
         with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
+            return cast(dict[str, Any], json.load(f))
     except (OSError, json.JSONDecodeError):
         logger.warning("Не удалось прочитать %s, используются настройки по умолчанию", path)
         return dict(DEFAULT_SETTINGS)
 
 
-def get_currency_rates(currencies: List[str]) -> List[dict]:
+def get_currency_rates(currencies: List[str]) -> List[dict[str, Any]]:
     """Курсы валют к рублю по данным ЦБ РФ с файловым кэшем.
 
     Порядок: кэш есть — отдаём его; кэша нет — запрос к API
@@ -55,7 +58,7 @@ def get_currency_rates(currencies: List[str]) -> List[dict]:
 
     cached = file_cache_get(key)
     if cached is not None:
-        return cached
+        return cast(list[dict[str, Any]], cached)
 
     try:
         response = requests.get(API_CURRENCY_URL, timeout=5)
@@ -79,7 +82,7 @@ def get_currency_rates(currencies: List[str]) -> List[dict]:
         return []
 
 
-def get_stock_prices(stocks: List[str]) -> List[dict]:
+def get_stock_prices(stocks: list[str]) -> List[dict[str, Any]]:
     """Стоимость акций из S&P 500 с файловым кэшем.
 
     Порядок: кэш есть — отдаём его; кэша нет — запросы к Alpha Vantage
@@ -96,7 +99,7 @@ def get_stock_prices(stocks: List[str]) -> List[dict]:
 
     cached = file_cache_get(key)
     if cached is not None:
-        return cached
+        return cast(list[dict[str, Any]], cached)
 
     if not _HAS_API_STOCK:
         logger.error("Ключ API_STOCK_KEY не задан, кэш отсутствует")
@@ -134,7 +137,7 @@ def main_page(date_str: str, transactions: Any) -> str:
     """
     dt = parse_date(date_str)
     period = filter_transactions_from_month_start(transactions, date_str)
-    cards: dict = {}
+    cards: dict[str, Any] = {}
     for row in period:
         amount = row.get("Сумма платежа")
         number = str(row.get("Номер карты", "") or "")
@@ -207,8 +210,8 @@ def events_page(date_str: str, transactions: Any, period: str = "M") -> str:
         if dt_op is not None and start <= dt_op <= end:
             rows.append(row)
 
-    expenses: dict = {}
-    income: dict = {}
+    expenses: dict[str, Any] = {}
+    income: dict[str, Any] = {}
     for row in rows:
         amount = row.get("Сумма платежа")
         if not isinstance(amount, (int, float)):

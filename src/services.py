@@ -1,12 +1,11 @@
-#src/services.py
-"""Сервисы: кешбэк по категориям, Инвесткопилка, поиски, переводы физлицам."""
+""" src/services.py Сервисы: кешбэк по категориям, Инвесткопилка, поиски, переводы физлицам."""
 from __future__ import annotations
 
 import json
 import logging
 import math
 import re
-from typing import Dict, List
+from typing import Dict, List, Any
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +13,7 @@ PHONE_PATTERN = re.compile(r"(?:\+7|8)[\s\-(]*(?:\d[\s\-)]*){9,11}")
 INDIVIDUAL_NAME_PATTERN = re.compile(r"\b[А-ЯЁ][а-яё]+\s[А-ЯЁ]\.")
 
 
-def cashback_categories(transactions: List[dict], year: int, month: int) -> str:
+def cashback_categories(transactions: List[dict[str, Any]], year: int, month: int) -> str:
     """Анализ выгодных категорий повышенного кешбэка за указанный месяц.
 
     :param transactions: список словарей с транзакциями.
@@ -35,7 +34,7 @@ def cashback_categories(transactions: List[dict], year: int, month: int) -> str:
     return json.dumps(cashback, ensure_ascii=False, indent=2)
 
 
-def investment_bank(month: str, transactions: List[dict], limit: int) -> float:
+def investment_bank(month: str, transactions: List[dict[str, Any]], limit: int) -> float:
     """Рассчитывает сумму для «Инвесткопилки» через округление трат.
 
     :param month: месяц в формате 'YYYY-MM'.
@@ -57,7 +56,7 @@ def investment_bank(month: str, transactions: List[dict], limit: int) -> float:
     return round(saved, 2)
 
 
-def simple_search(transactions: List[dict], search: str) -> str:
+def simple_search(transactions: List[dict[str, Any]], search: str) -> str:
     """Ищет транзакции по подстроке в описании или категории без учёта регистра.
 
     :param transactions: список словарей с транзакциями.
@@ -75,7 +74,7 @@ def simple_search(transactions: List[dict], search: str) -> str:
     return json.dumps(found, ensure_ascii=False, indent=2, default=str)
 
 
-def search_phone_numbers(transactions: List[dict]) -> str:
+def search_phone_numbers(transactions: List[dict[str, Any]]) -> str:
     """Ищет транзакции, в описании которых есть мобильные номера.
 
     Поддерживаются форматы '+7 (900) 000-00-00', '89000000000', '+7 921 11-22-33'.
@@ -87,7 +86,7 @@ def search_phone_numbers(transactions: List[dict]) -> str:
     return json.dumps(found, ensure_ascii=False, indent=2, default=str)
 
 
-def transfers_to_individuals(transactions: List[dict]) -> str:
+def transfers_to_individuals(transactions: List[dict[str, Any]]) -> str:
     """Ищет переводы физлицам: категория 'Переводы' и имя с инициалом в описании.
 
     :param transactions: список словарей с транзакциями.

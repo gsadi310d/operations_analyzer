@@ -1,5 +1,4 @@
-#src/utils.py
-"""Вспомогательные функции: чтение Excel, парсинг дат и приветствие."""
+""" src/utils.py Вспомогательные функции: чтение Excel, парсинг дат и приветствие."""
 from __future__ import annotations
 
 import logging
@@ -63,7 +62,7 @@ def get_greeting(current_time: Union[datetime, str]) -> str:
     return "Доброй ночи"
 
 
-def filter_transactions_from_month_start(transactions: Any, date_str: str) -> List[dict]:
+def filter_transactions_from_month_start(transactions: Any, date_str: str) -> List[dict[str, Any]]:
     """Возвращает транзакции с начала месяца даты по саму дату включительно.
 
     :param transactions: Список словарей или DataFrame с транзакциями.
@@ -73,7 +72,7 @@ def filter_transactions_from_month_start(transactions: Any, date_str: str) -> Li
     end = parse_date(date_str)
     start = end.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     end = end.replace(hour=23, minute=59, second=59)
-    result: List[dict] = []
+    result: List[dict[str, Any]] = []
     if hasattr(transactions, "to_dict"):
         transactions = transactions.to_dict("records")
     for row in transactions:

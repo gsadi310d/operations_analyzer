@@ -5,13 +5,9 @@ import json
 
 import pandas as pd
 
-from src.services import (
-    cashback_categories,
-    investment_bank,
-    search_phone_numbers,
-    simple_search,
-    transfers_to_individuals,
-)
+from src.services import (cashback_categories, investment_bank,
+                          search_phone_numbers, simple_search,
+                          transfers_to_individuals)
 
 
 def test_cashback_categories_december(sample_transactions):
