@@ -1,5 +1,4 @@
-#src/reports.py
-"""Отчёты: траты по категории, по дням недели, в рабочий/выходной день."""
+""" src/reports.py Отчёты: траты по категории, по дням недели, в рабочий/выходной день."""
 from __future__ import annotations
 
 import functools
@@ -26,7 +25,7 @@ WEEKDAY_NAMES = {
 }
 
 
-def save_to_file(filename: Optional[str] = None) -> Callable:
+def save_to_file(filename: Optional[str] = None) -> Callable[..., Any]:
     """Декоратор: сохраняет результат отчёта в JSON в папку reports/.
 
     Без параметра имя файла — '<имя_функции>_report.json',
@@ -36,7 +35,7 @@ def save_to_file(filename: Optional[str] = None) -> Callable:
     :return: декоратор.
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             result = func(*args, **kwargs)
@@ -60,7 +59,7 @@ def last_three_months_mask(df: pd.DataFrame, end: datetime) -> pd.Series:
 
 
 @save_to_file()
-def spending_by_category(df: pd.DataFrame, category: str, date: Optional[str] = None) -> dict:
+def spending_by_category(df: pd.DataFrame, category: str, date: Optional[str] = None) -> dict[str, Any]:
     """Траты по категории за последние три месяца от даты (или от текущей).
 
     :param df: DataFrame с транзакциями.
@@ -77,7 +76,7 @@ def spending_by_category(df: pd.DataFrame, category: str, date: Optional[str] = 
 
 
 @save_to_file()
-def spending_by_weekday(df: pd.DataFrame, date: Optional[str] = None) -> dict:
+def spending_by_weekday(df: pd.DataFrame, date: Optional[str] = None) -> dict[str, Any]:
     """Средние траты в каждый день недели за последние три месяца.
 
     :param df: DataFrame с транзакциями.
@@ -88,6 +87,7 @@ def spending_by_weekday(df: pd.DataFrame, date: Optional[str] = None) -> dict:
     mask = last_three_months_mask(df, end) & (df["Сумма платежа"] < 0)
     sub = df.loc[mask]
     spends = sub["Сумма платежа"].abs()
+    # noinspection PyUnresolvedReferences
     weekdays = sub["Дата операции"].dt.dayofweek
     result: Dict[str, float] = {}
     for wd in range(7):
@@ -98,7 +98,7 @@ def spending_by_weekday(df: pd.DataFrame, date: Optional[str] = None) -> dict:
 
 
 @save_to_file()
-def spending_by_workday_weekend(df: pd.DataFrame, date: Optional[str] = None) -> dict:
+def spending_by_workday_weekend(df: pd.DataFrame, date: Optional[str] = None) -> dict[str, Any]:
     """Средние траты в рабочий и в выходной день за последние три месяца.
 
     :param df: DataFrame с транзакциями.
@@ -109,6 +109,7 @@ def spending_by_workday_weekend(df: pd.DataFrame, date: Optional[str] = None) ->
     mask = last_three_months_mask(df, end) & (df["Сумма платежа"] < 0)
     sub = df.loc[mask]
     spends = sub["Сумма платежа"].abs()
+    # noinspection PyUnresolvedReferences
     weekdays = sub["Дата операции"].dt.dayofweek
     workday = spends[weekdays < 5]
     weekend = spends[weekdays >= 5]

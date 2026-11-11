@@ -14,6 +14,7 @@ def _tmp_reports_dir(tmp_path, monkeypatch):
     """Все отчёты пишутся во временную директорию, а не в корень проекта."""
     monkeypatch.chdir(tmp_path)
 
+
 def test_spending_by_category(df):
     result = spending_by_category(df, "Супермаркеты", "26.12.2021")
     assert result == {"category": "Супермаркеты", "total": 6351.23}

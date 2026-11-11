@@ -11,7 +11,7 @@ logger = setup_logger("cache", "logs/cache.log")
 API_CACHE_FILE = "data/api_cache.json"
 
 
-def file_cache_load(path: str = API_CACHE_FILE) -> dict:
+def file_cache_load(path: str = API_CACHE_FILE) -> dict[str, Any]:
     """Читает кэш-файл; при отсутствии или повреждении — пустой словарь."""
     try:
         with open(path, "r", encoding="utf-8") as f:
