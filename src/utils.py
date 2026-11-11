@@ -14,26 +14,27 @@ logger = logging.getLogger(__name__)
 def read_transactions_excel(file_path: str) -> pd.DataFrame:
     """Читает Excel-файл с транзакциями и приводит колонки дат к datetime.
 
-    :param file_path: путь к Excel-файлу.
+    :param file_path: Путь к Excel-файлу.
     :return: DataFrame с транзакциями.
     """
     logger.info("Чтение файла %s", file_path)
     df = pd.read_excel(file_path)
     for col in ("Дата операции", "Дата платежа"):
         if col in df.columns:
-            df[col] = pd.to_datetime(df[col], errors="coerce")
+            df[col] = pd.to_datetime(df[col], errors="coerce", dayfirst=True)
     logger.info("Загружено строк: %s", len(df))
     return df
 
 
 def parse_date(date_str: str) -> datetime:
-    """Парсит дату в форматах 'YYYY-MM-DD HH:MM:SS', 'YYYY-MM-DD', 'DD.MM.YYYY'.
+    """Парсит дату в форматах 'YYYY-MM-DD HH:MM:SS', 'YYYY-MM-DD',
+    'DD.MM.YYYY HH:MM:SS', 'DD.MM.YYYY'.
 
     :param date_str: строка с датой.
     :return: объект datetime.
     :raises ValueError: если формат неизвестен.
     """
-    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d", "%d.%m.%Y"):
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d", "%d.%m.%Y %H:%M:%S", "%d.%m.%Y"):
         try:
             return datetime.strptime(str(date_str).strip(), fmt)
         except ValueError:
@@ -47,8 +48,8 @@ def get_greeting(current_time: Union[datetime, str]) -> str:
     06:00-11:59 — 'Доброе утро', 12:00-17:59 — 'Добрый день',
     18:00-22:59 — 'Добрый вечер', 23:00-05:59 — 'Доброй ночи'.
 
-    :param current_time: datetime или строка 'YYYY-MM-DD HH:MM:SS'.
-    :return: строка приветствия.
+    :param current_time: Datetime или строка 'YYYY-MM-DD HH:MM:SS'.
+    :return: Строка приветствия.
     """
     if isinstance(current_time, str):
         current_time = parse_date(current_time)
@@ -65,9 +66,9 @@ def get_greeting(current_time: Union[datetime, str]) -> str:
 def filter_transactions_from_month_start(transactions: Any, date_str: str) -> List[dict]:
     """Возвращает транзакции с начала месяца даты по саму дату включительно.
 
-    :param transactions: список словарей или DataFrame с транзакциями.
-    :param date_str: дата в любом поддерживаемом формате.
-    :return: список словарей с транзакциями за период.
+    :param transactions: Список словарей или DataFrame с транзакциями.
+    :param date_str: Дата в любом поддерживаемом формате.
+    :return: Список словарей с транзакциями за период.
     """
     end = parse_date(date_str)
     start = end.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
