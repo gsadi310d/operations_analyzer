@@ -6,3 +6,7 @@ reports/
 .pytest_cache/
 htmlcov/
 .coverage
+logs/*.log
+.mypy_cache/
+logs/
+*.pyc

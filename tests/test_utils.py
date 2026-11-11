@@ -4,8 +4,7 @@ from datetime import datetime
 import pandas as pd
 import pytest
 
-from src.utils import (filter_transactions_from_month_start, get_greeting,
-                       parse_date, read_transactions_excel)
+from src.utils import filter_transactions_from_month_start, get_greeting, parse_date, read_transactions_excel
 
 
 @pytest.fixture
