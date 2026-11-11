@@ -16,7 +16,8 @@ load_dotenv()
 
 from src.cache import file_cache_get, file_cache_save
 from src.logg import setup_logger
-from src.utils import filter_transactions_from_month_start, get_greeting, parse_date
+from src.utils import (filter_transactions_from_month_start, get_greeting,
+                       parse_date)
 
 logger = setup_logger("views", "logs/views.log")
 

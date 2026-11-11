@@ -1,1 +1,1 @@
-2026-11-11 18:19:00,033 - cache - WARNING: Не удалось сохранить кэш API ([Errno 17] File exists: '/tmp/pytest-of-gsadi/pytest-12/test_save_to_unwritable_path_l0/blocker')
+2026-11-11 18:36:02,314 - cache - WARNING: Не удалось сохранить кэш API ([Errno 17] File exists: '/tmp/pytest-of-gsadi/pytest-14/test_save_to_unwritable_path_l0/blocker')
