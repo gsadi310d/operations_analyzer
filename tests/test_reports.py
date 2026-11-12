@@ -5,8 +5,7 @@ import os
 
 import pytest
 
-from src.reports import (save_to_file, spending_by_category,
-                         spending_by_weekday, spending_by_workday_weekend)
+from src.reports import save_to_file, spending_by_category, spending_by_weekday, spending_by_workday_weekend
 
 
 @pytest.fixture(autouse=True)

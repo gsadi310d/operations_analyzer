@@ -1,16 +1,40 @@
 """ src/utils.py Вспомогательные функции: чтение Excel, парсинг дат и приветствие."""
 from __future__ import annotations
 
-import logging
 from datetime import datetime
-from typing import Any, List, Union
+from pathlib import Path
+from typing import Any, List
 
 import pandas as pd
 
-logger = logging.getLogger(__name__)
+from src.logg import setup_logger
+
+logger = setup_logger("utils", "logs/utils.log")
+
+_DATE_FORMATS = (
+    "%Y-%m-%d %H:%M:%S",
+    "%Y-%m-%d",
+    "%d.%m.%Y %H:%M:%S",
+    "%d.%m.%Y",
+)
 
 
-def read_transactions_excel(file_path: str) -> pd.DataFrame:
+def parse_date_column(series: pd.Series) -> pd.Series:
+    """Парсит колонку дат, перебирая известные форматы."""
+    values = series.astype(str).str.strip()
+    parsed = pd.to_datetime(values, errors="coerce", format=_DATE_FORMATS[0])
+    remaining = parsed.isna()
+    for fmt in _DATE_FORMATS[1:]:
+        if not remaining.any():
+            break
+        parsed[remaining] = pd.to_datetime(
+            values[remaining], errors="coerce", format=fmt
+        )
+        remaining = parsed.isna()
+    return parsed
+
+
+def read_transactions_excel(file_path: str | Path) -> pd.DataFrame:
     """Читает Excel-файл с транзакциями и приводит колонки дат к datetime.
 
     :param file_path: Путь к Excel-файлу.
@@ -20,7 +44,7 @@ def read_transactions_excel(file_path: str) -> pd.DataFrame:
     df = pd.read_excel(file_path)
     for col in ("Дата операции", "Дата платежа"):
         if col in df.columns:
-            df[col] = pd.to_datetime(df[col], errors="coerce", dayfirst=True)
+            df[col] = parse_date_column(df[col])
     logger.info("Загружено строк: %s", len(df))
     return df
 
@@ -35,24 +59,26 @@ def parse_date(date_str: str) -> datetime:
     """
     for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d", "%d.%m.%Y %H:%M:%S", "%d.%m.%Y"):
         try:
+            logger.info(f"Дата распознана: {date_str}")
             return datetime.strptime(str(date_str).strip(), fmt)
         except ValueError:
             continue
     raise ValueError(f"Неизвестный формат даты: {date_str!r}")
 
 
-def get_greeting(current_time: Union[datetime, str]) -> str:
+def get_greeting(date_str: str | datetime) -> str:
     """Возвращает приветствие по интервалам.
 
     06:00-11:59 — 'Доброе утро', 12:00-17:59 — 'Добрый день',
     18:00-22:59 — 'Добрый вечер', 23:00-05:59 — 'Доброй ночи'.
 
-    :param current_time: Datetime или строка 'YYYY-MM-DD HH:MM:SS'.
+    :param date_str: Datetime или строка 'YYYY-MM-DD HH:MM:SS'.
     :return: Строка приветствия.
     """
-    if isinstance(current_time, str):
-        current_time = parse_date(current_time)
-    hour = current_time.hour
+    if isinstance(date_str, datetime):
+        hour = date_str.hour
+    else:
+        hour = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S").hour
     if 6 <= hour < 12:
         return "Доброе утро"
     if 12 <= hour < 18:
@@ -84,4 +110,5 @@ def filter_transactions_from_month_start(transactions: Any, date_str: str) -> Li
                 continue
         if dt is not None and start <= dt <= end:
             result.append(row)
+    logger.info("Транзакция получена")
     return result

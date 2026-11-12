@@ -6,10 +6,10 @@ from datetime import datetime, timedelta
 from typing import Any, List, Tuple, cast
 
 import requests
+
 from src.cache import file_cache_get, file_cache_save
 from src.logg import setup_logger
-from src.utils import (filter_transactions_from_month_start, get_greeting,
-                       parse_date)
+from src.utils import filter_transactions_from_month_start, get_greeting, parse_date
 
 """Заглушка: без пакета python-dotenv переменные читаются из окружения."""
 try:
@@ -38,6 +38,7 @@ def load_user_settings(path: str = "user_settings.json") -> dict[str, Any]:
     """Читает пользовательские настройки; при ошибке — настройки по умолчанию."""
     try:
         with open(path, "r", encoding="utf-8") as f:
+            logger.info("Пользовательские настройки считаны")
             return cast(dict[str, Any], json.load(f))
     except (OSError, json.JSONDecodeError):
         logger.warning("Не удалось прочитать %s, используются настройки по умолчанию", path)
@@ -58,6 +59,7 @@ def get_currency_rates(currencies: List[str]) -> List[dict[str, Any]]:
 
     cached = file_cache_get(key)
     if cached is not None:
+        logger.info("Кэш файл считан")
         return cast(list[dict[str, Any]], cached)
 
     try:
@@ -76,6 +78,7 @@ def get_currency_rates(currencies: List[str]) -> List[dict[str, Any]]:
                 logger.warning("Курс для %s не найден в ответе ЦБ", code)
         if result:
             file_cache_save(key, result)
+        logger.info("Курсы валют сформированы")
         return result
     except (requests.RequestException, ValueError, TypeError, ZeroDivisionError) as exc:
         logger.error("Курсы валют недоступны, кэш отсутствует (%s)", exc)
@@ -99,6 +102,7 @@ def get_stock_prices(stocks: list[str]) -> List[dict[str, Any]]:
 
     cached = file_cache_get(key)
     if cached is not None:
+        logger.info("Кэш считан")
         return cast(list[dict[str, Any]], cached)
 
     if not _HAS_API_STOCK:
@@ -122,6 +126,7 @@ def get_stock_prices(stocks: list[str]) -> List[dict[str, Any]]:
                 logger.warning("Цена для %s не получена", symbol)
         if result:
             file_cache_save(key, result)
+        logger.info("Курсы акций сохранены")
         return result
     except (requests.RequestException, ValueError, TypeError) as exc:
         logger.error("Цены акций недоступны, кэш отсутствует (%s)", exc)
@@ -135,7 +140,6 @@ def main_page(date_str: str, transactions: Any) -> str:
     :param transactions: транзакции (список словарей или DataFrame).
     :return: JSON-строка с ответом.
     """
-    dt = parse_date(date_str)
     period = filter_transactions_from_month_start(transactions, date_str)
     cards: dict[str, Any] = {}
     for row in period:
@@ -150,7 +154,7 @@ def main_page(date_str: str, transactions: Any) -> str:
         reverse=True,)[:5]
     settings = load_user_settings()
     response = {
-        "greeting": get_greeting(dt),
+        "greeting": get_greeting(datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
         "cards": [
             {"last_digits": digits, "total_spent": round(total, 2), "cashback": round(total / 100, 2)}
             for digits, total in sorted(cards.items())
@@ -167,6 +171,7 @@ def main_page(date_str: str, transactions: Any) -> str:
         "currency_rates": get_currency_rates(settings.get("user_currencies", ["USD", "EUR"])),
         "stock_prices": get_stock_prices(settings.get("user_stocks", [])),
     }
+    logger.info("Ответ сформирован")
     return json.dumps(response, ensure_ascii=False, indent=2)
 
 
@@ -177,6 +182,7 @@ def get_period_range(dt: datetime, period: str) -> Tuple[datetime, datetime]:
     :param period: W (неделя), M (месяц), Y (год), ALL (всё время).
     :return: Кортеж (начало, конец) диапазона.
     """
+    logger.info(f"Введен период {period}")
     end = dt.replace(hour=23, minute=59, second=59)
     if period == "W":
         start = dt - timedelta(days=dt.weekday())
@@ -189,6 +195,7 @@ def get_period_range(dt: datetime, period: str) -> Tuple[datetime, datetime]:
     else:
         logger.warning("Неизвестный период %r, используется месяц", period)
         start = dt.replace(day=1)
+    logger.info("Период сформирован")
     return start.replace(hour=0, minute=0, second=0), end
 
 
@@ -249,4 +256,5 @@ def events_page(date_str: str, transactions: Any, period: str = "M") -> str:
         "currency_rates": get_currency_rates(settings.get("user_currencies", ["USD", "EUR"])),
         "stock_prices": get_stock_prices(settings.get("user_stocks", [])),
     }
+    logger.info("Ответ сформирован")
     return json.dumps(response, ensure_ascii=False, indent=2)

@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 import json
-import logging
 import math
 import re
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
-logger = logging.getLogger(__name__)
+from src.logg import setup_logger
+
+logger = setup_logger("servises", "logs/servises.log")
 
 PHONE_PATTERN = re.compile(r"(?:\+7|8)[\s\-(]*(?:\d[\s\-)]*){9,11}")
 INDIVIDUAL_NAME_PATTERN = re.compile(r"\b[А-ЯЁ][а-яё]+\s[А-ЯЁ]\.")
@@ -31,6 +32,7 @@ def cashback_categories(transactions: List[dict[str, Any]], year: int, month: in
             category = row.get("Категория", "Без категории")
             totals[category] = totals.get(category, 0.0) + abs(float(amount))
     cashback = {cat: round(total / 100, 2) for cat, total in sorted(totals.items())}
+    logger.info("Отчет сформирован")
     return json.dumps(cashback, ensure_ascii=False, indent=2)
 
 
@@ -42,6 +44,7 @@ def investment_bank(month: str, transactions: List[dict[str, Any]], limit: int) 
     :param limit: порог округления (10, 50 или 100).
     :return: сумма, которая ушла бы в Инвесткопилку.
     """
+    logger.info(month)
     saved = 0.0
     for row in transactions:
         dt = row.get("Дата операции")
@@ -71,6 +74,7 @@ def simple_search(transactions: List[dict[str, Any]], search: str) -> str:
         )
         if needle in haystack:
             found.append(row)
+    logger.info("Отчет сформирован")
     return json.dumps(found, ensure_ascii=False, indent=2, default=str)
 
 
@@ -83,6 +87,7 @@ def search_phone_numbers(transactions: List[dict[str, Any]]) -> str:
     :return: JSON-строка со списком найденных транзакций.
     """
     found = [row for row in transactions if PHONE_PATTERN.search(str(row.get("Описание", "")))]
+    logger.info("Отчет сформирован")
     return json.dumps(found, ensure_ascii=False, indent=2, default=str)
 
 
@@ -99,4 +104,5 @@ def transfers_to_individuals(transactions: List[dict[str, Any]]) -> str:
         description = str(row.get("Описание", ""))
         if INDIVIDUAL_NAME_PATTERN.search(description):
             found.append(row)
+    logger.info("Отчет сформирован")
     return json.dumps(found, ensure_ascii=False, indent=2, default=str)

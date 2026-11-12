@@ -3,16 +3,16 @@ from __future__ import annotations
 
 import functools
 import json
-import logging
 import os
 from datetime import datetime
 from typing import Any, Callable, Dict, Optional
 
 import pandas as pd
 
+from src.logg import setup_logger
 from src.utils import parse_date
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("reports", "logs/reports.log")
 
 WEEKDAY_NAMES = {
     0: "Понедельник",
@@ -94,6 +94,7 @@ def spending_by_weekday(df: pd.DataFrame, date: Optional[str] = None) -> dict[st
         values = spends[weekdays == wd]
         if len(values):
             result[WEEKDAY_NAMES[wd]] = round(float(values.mean()), 2)
+    logger.info("Отчет сформирован")
     return result
 
 
@@ -113,6 +114,7 @@ def spending_by_workday_weekend(df: pd.DataFrame, date: Optional[str] = None) ->
     weekdays = sub["Дата операции"].dt.dayofweek
     workday = spends[weekdays < 5]
     weekend = spends[weekdays >= 5]
+    logger.info("Отчет сформирован")
     return {
         "рабочий": round(float(workday.mean()), 2) if len(workday) else 0.0,
         "выходной": round(float(weekend.mean()), 2) if len(weekend) else 0.0,

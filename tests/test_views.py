@@ -1,12 +1,13 @@
 """Тесты страниц «Главная» и «События», API-функций и загрузки настроек."""
 import json
 from datetime import datetime
+from unittest.mock import patch
 
 import pytest
 
 import src.views as views
-from src.views import (events_page, get_currency_rates, get_period_range,
-                       get_stock_prices, load_user_settings, main_page)
+from src.views import (events_page, get_currency_rates, get_period_range, get_stock_prices, load_user_settings,
+                       main_page)
 
 # ---------- Вспомогательные моки ----------
 
@@ -241,7 +242,10 @@ def api_mocks(monkeypatch):
     )
 
 
-def test_main_page_structure(transactions, api_mocks):
+@patch("src.views.datetime")
+def test_main_page_structure(mock_dt, transactions, api_mocks):
+    mock_dt.now.return_value = datetime(2021, 12, 26, 20, 0, 0)
+    mock_dt.strptime = datetime.strptime
     data = json.loads(main_page("2021-12-26 20:00:00", transactions))
 
     assert data["greeting"] == "Добрый вечер"
